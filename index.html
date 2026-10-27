@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SI-JANJI PERTANAHAN - Kantor Pertanahan Kabupaten Muna</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bpn: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .modal-backdrop {
+            background-color: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <!-- TOP NAVBAR & BRANDING -->
+    <header class="bg-bpn-800 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col lg:flex-row items-center justify-between py-3 gap-3">
+                
+                <!-- Logo & Title -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('pemohon')">
+                    <div class="bg-white/10 p-2.5 rounded-xl border border-white/20">
+                        <i class="fa-solid fa-map-location-dot text-2xl text-emerald-300"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-semibold bg-bpn-950 text-emerald-200 py-0.5 rounded tracking-widest uppercase">Kantor Pertanahan Kota Baubau</span>
+                        </div>
+                        <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                            SI-JANJI PERTANAHAN
+                        </h1>
+                        <p class="text-xs text-emerald-200 font-light">Sistem Janji Temu</p>
+                    </div>
+                </div>
+
+                <!-- MAIN NAVIGATION TABS & LOGIN STATUS -->
+                <div class="flex items-center gap-2 w-full lg:w-auto justify-between lg:justify-end">
+                    <nav class="flex bg-bpn-900/80 p-1 rounded-xl gap-1 text-xs sm:text-sm overflow-x-auto no-scrollbar">
+                        <button onclick="switchView('pemohon')" id="nav-pemohon" class="role-nav-btn px-3.5 py-2 rounded-lg transition duration-200 flex items-center gap-2 font-medium bg-white text-bpn-900 shadow-sm whitespace-nowrap">
+                            <i class="fa-solid fa-user-pen"></i>
+                            <span>Halaman Pemohon</span>
+                        </button>
+                        <button onclick="checkAccessAndSwitch('admin')" id="nav-admin" class="role-nav-btn px-3.5 py-2 rounded-lg transition duration-200 flex items-center gap-2 font-medium text-emerald-100 hover:text-white hover:bg-bpn-700 whitespace-nowrap">
+                            <i class="fa-solid fa-user-shield"></i>
+                            <span>Admin Services</span>
+                        </button>
+                        <button onclick="checkAccessAndSwitch('kasi')" id="nav-kasi" class="role-nav-btn px-3.5 py-2 rounded-lg transition duration-200 flex items-center gap-2 font-medium text-emerald-100 hover:text-white hover:bg-bpn-700 whitespace-nowrap">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <span>Monitoring Kasi</span>
+                        </button>
+                    </nav>
+
+                    <!-- Auth Button -->
+                    <div id="authArea">
+                        <!-- Populated by JS (Login / Logout button) -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- ========================================================================= -->
+        <!-- VIEW 1: FORMULIR PEMOHON & LACAK JANJI TEMU                               -->
+        <!-- ========================================================================= -->
+        <section id="view-pemohon" class="view-section space-y-8">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- LEFT SIDE: FORM PENGAJUAN -->
+                <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-md p-6 sm:p-8">
+                    <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                        <div class="w-10 h-10 rounded-full bg-bpn-50 text-bpn-700 flex items-center justify-center">
+                            <i class="fa-solid fa-calendar-plus text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Buat Janji Temu Baru</h2>
+                            <p class="text-xs text-slate-500">Ajukan lokasi pengukuran atau konsultasi teknis pertanahan</p>
+                        </div>
+                    </div>
+
+                    <form id="formJanjiPemohon" onsubmit="event.preventDefault(); submitJanjiPemohon();" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Lengkap Pemohon *</label>
+                                <input type="text" id="p_nama" required placeholder="Contoh: La Ode Muhammad Syah" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-bpn-500 text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">No. WhatsApp Pemohon *</label>
+                                <input type="tel" id="p_wa" required placeholder="081234567890" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-bpn-500 text-sm outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Jenis Layanan / Kegiatan *</label>
+                                <select id="p_layanan" required class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-bpn-500 text-sm outline-none bg-white">
+                                    <option value="Pengukuran Kadastral">Pengukuran Kadastral Bidang Tanah</option>
+                                    <option value="Konsultasi Teknis Pengukuran atau Lapangan">Konsultasi Teknis Pengukuran atau Lapangan</option>
+                                    <option value="Plotting">Plotting Bidang Tanah</option>
+                                    <option value="Lain-lain">Lain-lain/tulis pada kolom keperluan</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Usulan Petugas Ukur (Opsional)</label>
+                                <select id="p_petugas" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-bpn-500 text-sm outline-none bg-white">
+                                    <!-- Populated dynamically from Master Petugas Ukur -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Usulan Tanggal pertemuan *</label>
+                                <input type="date" id="p_tgl" required class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-bpn-500 text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Usulan Jam *</label>
+                                <select id="p_jam" required class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-bpn-500 text-sm outline-none bg-white">
+                                    <option value="09:00 WITA">09:00 WITA</option>
+                                    <option value="10:30 WITA">10:30 WITA</option>
+                                    <option value="13:30 WITA">13:30 WITA</option>
+                                    <option value="15:00 WITA">15:00 WITA</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">No. Berkas / No. Pendaftaran (Jika ada)</label>
+                            <input type="text" id="p_berkas" placeholder="Contoh: 1234/2026 atau No. Berkas Pendaftaran" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-bpn-500 text-sm outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Keperluan & Alamat/Detail Lokasi *</label>
+                            <textarea id="p_alasan" rows="3" required placeholder="Tuliskan lokasi bidang tanah / keperluan janji temu secara jelas..." class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-bpn-500 text-sm outline-none"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full bg-bpn-700 hover:bg-bpn-800 text-white font-medium py-3 px-6 rounded-xl shadow-md transition duration-200 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Kirim Pengajuan Janji Temu</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- RIGHT SIDE: LACAK STATUS JANJI TEMU -->
+                <div class="lg:col-span-5 space-y-6">
+                    
+                    <!-- Lacak Card -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-md p-6">
+                        <div class="flex items-center gap-3 border-b border-slate-100 pb-4 mb-4">
+                            <div class="w-10 h-10 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center">
+                                <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-base font-bold text-slate-800">Lacak Status Janji</h2>
+                                <p class="text-xs text-slate-500">Cek persetujuan janji temu Anda</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <label class="block text-xs font-semibold text-slate-700">Masukkan Kode Tiket Janji</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="lacak_kode" placeholder="Contoh: JNJ-20261027-001" class="flex-grow px-3.5 py-2.5 rounded-lg border border-slate-300 uppercase font-mono text-sm focus:ring-2 focus:ring-sky-500 outline-none">
+                                <button onclick="lacakJanjiPemohon()" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2.5 rounded-lg text-sm transition font-medium">
+                                    Cari
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Result Display Box -->
+                        <div id="lacakResult" class="mt-6 hidden">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Informasi Card -->
+                    <div class="bg-bpn-900 text-white rounded-2xl p-6 shadow-md relative overflow-hidden">
+                        <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full"></div>
+                        <h3 class="font-bold text-sm text-emerald-200 mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-info"></i> Petunjuk Layanan
+                        </h3>
+                        <ol class="text-xs text-emerald-100 space-y-2 list-decimal list-inside font-light">
+                            <li>Isi form pengajuan dan catat Kode Tiket Anda Untuk Info Kabar Persetujuan.</li>
+                            <li>Admin Pelayanan akan mengonfirmasi dengan Petugas Ukur.</li>
+                            <li>Kabar persetujuan juga akan dikirim melalui WhatsApp resmi.</li>
+                        </ol>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- VIEW 2: DASHBOARD ADMIN OPERATOR                                          -->
+        <!-- ========================================================================= -->
+        <section id="view-admin" class="view-section hidden space-y-6">
+            
+            <!-- HEADER BAR ADMIN -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-user-shield text-bpn-700"></i>
+                        <span>Dashboard Operator Pelayanan (Admin)</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">Kelola persetujuan janji temu, penugasan petugas ukur, dan notifikasi WA</p>
+                </div>
+                
+                <div class="flex items-center gap-2 text-xs">
+                    <button onclick="openMasterPetugasModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl font-medium transition flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-users-gear"></i> Master Petugas Ukur
+                    </button>
+                    <button onclick="resetDataDemo()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-xl border transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate-right"></i> Demo Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- TABEL MONITORING UTAMA ADMIN -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-md overflow-hidden">
+                <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-sm font-bold text-slate-700">Daftar Permohonan Janji Temu</h3>
+                        <span id="adminTotalCount" class="bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full text-xs font-bold">0</span>
+                    </div>
+
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <input type="text" id="adminSearchInput" onkeyup="filterAdminTable()" placeholder="Cari pemohon / kode..." class="px-3.5 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-bpn-500 w-full sm:w-64">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                                <th class="p-3.5">Kode & Tgl Masuk</th>
+                                <th class="p-3.5">Pemohon & WA</th>
+                                <th class="p-3.5">Layanan & Detail Lokasi</th>
+                                <th class="p-3.5">Petugas Ukur Ditunjuk</th>
+                                <th class="p-3.5">Jadwal Pertemuan</th>
+                                <th class="p-3.5 text-center">Status</th>
+                                <th class="p-3.5 text-center">Keputusan Admin</th>
+                                <th class="p-3.5 text-center">Kirim Notifikasi WA</th>
+                                <th class="p-3.5 text-center">Kelola</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody" class="divide-y divide-slate-100 text-slate-700">
+                            <!-- Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- VIEW 3: DASHBOARD KEPALA SEKSI (EXECUTIVE MONITORING)                     -->
+        <!-- ========================================================================= -->
+        <section id="view-kasi" class="view-section hidden space-y-6">
+            
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-bpn-700"></i>
+                        <span>Dashboard Pengawasan Kepala Seksi</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">Monitoring real-time beban kerja petugas ukur dan transparansi keputusan</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs text-slate-500 font-medium">Filter Kegiatan:</label>
+                    <select id="kasiFilterLayanan" onchange="renderKasiDashboard()" class="text-xs px-3 py-1.5 rounded-lg border border-slate-300 bg-white outline-none focus:ring-2 focus:ring-bpn-500">
+                        <option value="SEMUA">-- Semua Jenis Layanan --</option>
+                                <option value="Pengukuran Kadastral">Pengukuran Kadastral Bidang Tanah</option>
+                                <option value="Konsultasi Teknis Pengukuran atau Lapangan">Konsultasi Teknis Pengukuran atau Lapangan</option>
+                                <option value="Plotting">Plotting Bidang Tanah</option>
+                                <option value="Lain-lain">Lain-lain/tulis pada kolom keperluan</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- STATISTIK WIDGETS -->
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-folder-open"></i>
+                    </div>
+                    <div>
+                        <div class="text-xl font-bold text-slate-800" id="kasiTotal">0</div>
+                        <div class="text-[11px] text-slate-400 font-medium">Total Pengajuan</div>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div>
+                        <div class="text-xl font-bold text-emerald-700" id="kasiAcc">0</div>
+                        <div class="text-[11px] text-slate-400 font-medium">Disetujui</div>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div>
+                        <div class="text-xl font-bold text-indigo-700" id="kasiSelesai">0</div>
+                        <div class="text-[11px] text-slate-400 font-medium">Selesai</div>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </div>
+                    <div>
+                        <div class="text-xl font-bold text-rose-600" id="kasiDitolak">0</div>
+                        <div class="text-[11px] text-slate-400 font-medium">Ditolak</div>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div>
+                        <div class="text-xl font-bold text-amber-600" id="kasiPending">0</div>
+                        <div class="text-[11px] text-slate-400 font-medium">Menunggu</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- BEBAN KERJA PETUGAS UKUR -->
+                <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 shadow-md p-6">
+                    <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center justify-between">
+                        <span><i class="fa-solid fa-chart-bar text-bpn-600 mr-2"></i> Beban Kerja Petugas Ukur</span>
+                        <span class="text-xs text-slate-400 font-normal">Janji Temu Aktif</span>
+                    </h3>
+                    <div id="kasiBebanKerjaContainer" class="space-y-4">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- AUDIT LOG KEPUTUSAN -->
+                <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-md p-6">
+                    <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center justify-between">
+                        <span><i class="fa-solid fa-clipboard-check text-bpn-600 mr-2"></i> Audit Transparansi Keputusan Admin</span>
+                    </h3>
+
+                    <div class="overflow-y-auto max-h-[380px] space-y-3 pr-1" id="kasiAuditLogContainer">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-8">
+        &copy; 2026 Kantor Pertanahan Kabupaten Muna - SI-JANJI PERTANAHAN
+    </footer>
+
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 1: LOGIN PETUGAS INTERNAL (ADMIN & KASI)                            -->
+    <!-- ========================================================================= -->
+    <div id="loginModal" class="fixed inset-0 modal-backdrop hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 space-y-4">
+            
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-bpn-100 text-bpn-800 flex items-center justify-center">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-800">Login Petugas</h3>
+                </div>
+                <button onclick="closeModal('loginModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="event.preventDefault(); processLogin();" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Username</label>
+                    <input type="text" id="loginUsername" required placeholder="Contoh: admin atau kasi" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-bpn-500">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Password</label>
+                    <input type="password" id="loginPassword" required placeholder="Masukkan password" class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-bpn-500">
+                </div>
+                
+                <button type="submit" class="w-full bg-bpn-700 hover:bg-bpn-800 text-white font-medium py-2.5 rounded-lg shadow-sm transition">
+                    Masuk ke Sistem
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 2: MASTER DATA PETUGAS UKUR                                        -->
+    <!-- ========================================================================= -->
+    <div id="masterPetugasModal" class="fixed inset-0 modal-backdrop hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 space-y-4">
+            
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear text-bpn-700 text-lg"></i>
+                    <h3 class="text-base font-bold text-slate-800">Kelola Master Petugas Ukur</h3>
+                </div>
+                <button onclick="closeModal('masterPetugasModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <!-- Form Tambah Petugas -->
+            <form onsubmit="event.preventDefault(); addPetugasUkur();" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-xs">
+                <span class="font-bold text-slate-700 block">Tambah Petugas Ukur Baru</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input type="text" id="m_nama_petugas" required placeholder="Nama & Gelar" class="px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-bpn-500">
+                    <input type="tel" id="m_wa_petugas" required placeholder="No. WA (0812...)" class="px-3 py-2 border rounded-lg outline-none focus:ring-1 focus:ring-bpn-500">
+                </div>
+                <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-2 rounded-lg transition">
+                    + Simpan Petugas Baru
+                </button>
+            </form>
+
+            <!-- Tabel Daftar Petugas -->
+            <div class="overflow-y-auto max-h-48 border border-slate-200 rounded-xl">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead class="bg-slate-100 text-slate-600 border-b">
+                        <tr>
+                            <th class="p-2.5">Nama Petugas</th>
+                            <th class="p-2.5">No. WhatsApp</th>
+                            <th class="p-2.5 text-center">Hapus</th>
+                        </tr>
+                    </thead>
+                    <tbody id="masterPetugasTableBody" class="divide-y divide-slate-100">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 3: KEPUTUSAN ADMIN (ACC / RESCHEDULE / TOLAK / SELESAI)              -->
+    <!-- ========================================================================= -->
+    <div id="actionModal" class="fixed inset-0 modal-backdrop hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4">
+            
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 id="modalTitle" class="text-base font-bold text-slate-800">Tindakan Keputusan Admin</h3>
+                <button onclick="closeModal('actionModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <input type="hidden" id="modalJanjiId">
+            <input type="hidden" id="modalActionType">
+
+            <!-- Dynamic Content Fields -->
+            <div id="modalContent" class="space-y-3 text-xs">
+                <!-- ACC / RESCHEDULE / REJECT FIELDS GO HERE -->
+            </div>
+
+            <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button onclick="closeModal('actionModal')" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium">Batal</button>
+                <button onclick="submitModalAction()" class="px-4 py-2 rounded-lg bg-bpn-700 hover:bg-bpn-800 text-white text-xs font-medium shadow-sm">Simpan Keputusan</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SCRIPT APPLICATION LOGIC -->
+    <script>
+        // CORE DATABASE KEYS
+        const DB_JANJI_KEY = 'sijanji_muna_list_2026';
+        const DB_PETUGAS_KEY = 'sijanji_muna_petugas_master_2026';
+
+        let janjiList = [];
+        let petugasMaster = [];
+        let targetViewAfterLogin = '';
+
+        // DUMMY INITIAL MASTER PETUGAS UKUR
+        const initialPetugas = [
+            { id: 1, nama: 'La Ode Arifin (Demo), S.ST.', wa: '081245678901' },
+        ];
+
+        // DUMMY INITIAL JANJI TEMU
+        const initialJanji = [
+            {
+                id: 'JNJ-20261027-001',
+                nama: 'La ode Ahmad (Demo)',
+                wa: '081299998888',
+                layanan: 'Pengukuran Kadastral',
+                petugas: 'La Ode Arifin, S.ST.',
+                tglUsulan: '2026-10-28',
+                jamUsulan: '09:00 WITA',
+                berkas: '542/2026',
+                alasan: 'Pengukuran lokasi tanah sertifikat baru di Raha Barat.',
+                status: 'Disetujui', // Status: Menunggu, Disetujui, Reschedule, Ditolak, Selesai
+                tglKonfirmasi: '2026-10-28',
+                jamKonfirmasi: '09:00 WITA',
+                alasanKeputusan: 'Petugas bersedia di lokasi sesuai jadwal.',
+                timestamp: '2026-10-27 08:15'
+            }
+        ];
+
+        // INIT APPLICATION
+        window.onload = function() {
+            loadMasterPetugas();
+            loadJanjiDatabase();
+            updateAuthAreaUI();
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('p_tgl').min = today;
+            document.getElementById('p_tgl').value = today;
+        };
+
+        // LOCALSTORAGE MANAGERS
+        function loadMasterPetugas() {
+            const stored = localStorage.getItem(DB_PETUGAS_KEY);
+            if (!stored) {
+                petugasMaster = initialPetugas;
+                saveMasterPetugas();
+            } else {
+                petugasMaster = JSON.parse(stored);
+            }
+            populatePetugasDropdowns();
+            renderMasterPetugasTable();
+        }
+
+        function saveMasterPetugas() {
+            localStorage.setItem(DB_PETUGAS_KEY, JSON.stringify(petugasMaster));
+            populatePetugasDropdowns();
+            renderMasterPetugasTable();
+        }
+
+        function loadJanjiDatabase() {
+            const stored = localStorage.getItem(DB_JANJI_KEY);
+            if (!stored) {
+                janjiList = initialJanji;
+                saveJanjiDatabase();
+            } else {
+                janjiList = JSON.parse(stored);
+            }
+            renderAllDashboards();
+        }
+
+        function saveJanjiDatabase() {
+            localStorage.setItem(DB_JANJI_KEY, JSON.stringify(janjiList));
+            renderAllDashboards();
+        }
+
+        function resetDataDemo() {
+            if (confirm("Reset data ke kondisi awal demo?")) {
+                janjiList = initialJanji;
+                petugasMaster = initialPetugas;
+                saveMasterPetugas();
+                saveJanjiDatabase();
+                alert("Data berhasil di-reset.");
+            }
+        }
+
+        // DYNAMIC DROPDOWN POPULATOR
+        function populatePetugasDropdowns() {
+            const pemohonSelect = document.getElementById('p_petugas');
+            if (!pemohonSelect) return;
+
+            pemohonSelect.innerHTML = '<option value="Bebas / Petugas Mana Saja">-- Bebas / Rekomendasi Admin --</option>';
+            petugasMaster.forEach(p => {
+                pemohonSelect.innerHTML += `<option value="${p.nama}">${p.nama}</option>`;
+            });
+        }
+
+        // NAVIGATION & ROLE ACCESS CONTROL
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.role-nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-bpn-900', 'shadow-sm');
+                btn.classList.add('text-emerald-100', 'hover:text-white', 'hover:bg-bpn-700');
+            });
+
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${viewName}`);
+            activeBtn.classList.add('bg-white', 'text-bpn-900', 'shadow-sm');
+            activeBtn.classList.remove('text-emerald-100', 'hover:text-white', 'hover:bg-bpn-700');
+
+            renderAllDashboards();
+        }
+
+        function checkAccessAndSwitch(viewName) {
+            const currentRole = sessionStorage.getItem('sijanji_role');
+            if (currentRole === viewName || (currentRole === 'admin' && viewName === 'kasi')) {
+                switchView(viewName);
+            } else {
+                targetViewAfterLogin = viewName;
+                document.getElementById('loginModal').classList.remove('hidden');
+            }
+        }
+
+        function processLogin() {
+            const user = document.getElementById('loginUsername').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+
+            if (user === 'admin' && pass === 'admin123') {
+                sessionStorage.setItem('sijanji_role', 'admin');
+                closeModal('loginModal');
+                updateAuthAreaUI();
+                switchView(targetViewAfterLogin || 'admin');
+            } else if (user === 'kasi' && pass === 'kasi123') {
+                sessionStorage.setItem('sijanji_role', 'kasi');
+                closeModal('loginModal');
+                updateAuthAreaUI();
+                switchView(targetViewAfterLogin || 'kasi');
+            } else {
+                alert('Username atau Password salah!');
+            }
+        }
+
+        function processLogout() {
+            sessionStorage.removeItem('sijanji_role');
+            updateAuthAreaUI();
+            switchView('pemohon');
+        }
+
+        function updateAuthAreaUI() {
+            const authArea = document.getElementById('authArea');
+            const role = sessionStorage.getItem('sijanji_role');
+
+            if (role) {
+                authArea.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs bg-emerald-900 text-emerald-200 px-2.5 py-1 rounded-lg border border-emerald-700">
+                            Role: <strong class="uppercase">${role}</strong>
+                        </span>
+                        <button onclick="processLogout()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1">
+                            <i class="fa-solid fa-right-from-bracket"></i> Keluar
+                        </button>
+                    </div>
+                `;
+            } else {
+                authArea.innerHTML = `
+                    <button onclick="checkAccessAndSwitch('admin')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-lock"></i> Login Petugas
+                    </button>
+                `;
+            }
+        }
+
+        function renderAllDashboards() {
+            renderAdminDashboard();
+            renderKasiDashboard();
+        }
+
+        // =========================================================================
+        // VIEW 1: PEMOHON ACTIONS
+        // =========================================================================
+        function submitJanjiPemohon() {
+            const nama = document.getElementById('p_nama').value.trim();
+            const wa = document.getElementById('p_wa').value.trim();
+            const layanan = document.getElementById('p_layanan').value;
+            const petugas = document.getElementById('p_petugas').value;
+            const tglUsulan = document.getElementById('p_tgl').value;
+            const jamUsulan = document.getElementById('p_jam').value;
+            const berkas = document.getElementById('p_berkas').value.trim() || '-';
+            const alasan = document.getElementById('p_alasan').value.trim();
+
+            const dateCode = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const randomNum = String(janjiList.length + 1).padStart(3, '0');
+            const newId = `JNJ-${dateCode}-${randomNum}`;
+
+            const now = new Date();
+            const timeFormatted = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            const newJanji = {
+                id: newId,
+                nama, wa, layanan, petugas, tglUsulan, jamUsulan, berkas, alasan,
+                status: 'Menunggu',
+                tglKonfirmasi: '',
+                jamKonfirmasi: '',
+                alasanKeputusan: '',
+                timestamp: timeFormatted
+            };
+
+            janjiList.unshift(newJanji);
+            saveJanjiDatabase();
+
+            document.getElementById('formJanjiPemohon').reset();
+            document.getElementById('lacak_kode').value = newId;
+            lacakJanjiPemohon();
+
+            alert(`Pengajuan Berhasil!\n\nKode Tiket Anda: ${newId}\nSimpan Kode ini untuk melacak persetujuan janji temu Anda.`);
+        }
+
+        function lacakJanjiPemohon() {
+            const kode = document.getElementById('lacak_kode').value.trim().toUpperCase();
+            const container = document.getElementById('lacakResult');
+
+            if (!kode) {
+                alert("Masukkan Kode Tiket!");
+                return;
+            }
+
+            const item = janjiList.find(i => i.id === kode);
+            container.classList.remove('hidden');
+
+            if (!item) {
+                container.innerHTML = `
+                    <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs">
+                        <i class="fa-solid fa-circle-exclamation mr-1.5"></i> Kode Tiket <strong>${kode}</strong> tidak ditemukan.
+                    </div>
+                `;
+                return;
+            }
+
+            let statusBadge = '<span class="bg-amber-100 text-amber-800 border-amber-300 font-bold px-2.5 py-1 rounded-full border">Menunggu Verifikasi</span>';
+            if (item.status === 'Disetujui') statusBadge = '<span class="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold px-2.5 py-1 rounded-full border">Disetujui</span>';
+            else if (item.status === 'Reschedule') statusBadge = '<span class="bg-sky-100 text-sky-800 border-sky-300 font-bold px-2.5 py-1 rounded-full border">Reschedule</span>';
+            else if (item.status === 'Ditolak') statusBadge = '<span class="bg-rose-100 text-rose-800 border-rose-300 font-bold px-2.5 py-1 rounded-full border">Ditolak</span>';
+            else if (item.status === 'Selesai') statusBadge = '<span class="bg-indigo-100 text-indigo-800 border-indigo-300 font-bold px-2.5 py-1 rounded-full border">Selesai</span>';
+
+            container.innerHTML = `
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 text-xs">
+                    <div class="flex items-center justify-between border-b pb-2">
+                        <span class="font-mono font-bold text-slate-700">${item.id}</span>
+                        ${statusBadge}
+                    </div>
+
+                    <div class="space-y-1 text-slate-600">
+                        <p><strong>Pemohon:</strong> ${item.nama} (${item.wa})</p>
+                        <p><strong>Layanan:</strong> ${item.layanan}</p>
+                        <p><strong>Petugas Ditunjuk:</strong> ${item.petugas}</p>
+                        <p><strong>Waktu Diusulkan:</strong> ${item.tglUsulan} | ${item.jamUsulan}</p>
+                    </div>
+
+                    ${(item.status === 'Disetujui' || item.status === 'Reschedule' || item.status === 'Selesai') ? `
+                        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-900">
+                            <p class="font-bold text-xs"><i class="fa-solid fa-calendar-check mr-1"></i> Jadwal Pasti Pertemuan:</p>
+                            <p class="text-sm font-bold text-emerald-700">${item.tglKonfirmasi || item.tglUsulan} Jam ${item.jamKonfirmasi || item.jamUsulan}</p>
+                            ${item.alasanKeputusan ? `<p class="mt-1 text-[11px] text-slate-500 italic">Catatan: "${item.alasanKeputusan}"</p>` : ''}
+                        </div>
+                    ` : ''}
+
+                    ${item.status === 'Ditolak' ? `
+                        <div class="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-800">
+                            <p class="font-bold text-xs"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Alasan Penolakan:</p>
+                            <p class="text-xs text-rose-700 mt-0.5">"${item.alasanKeputusan || 'Tidak ada alasan.'}"</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // =========================================================================
+        // VIEW 2: ADMIN DASHBOARD & MASTER PETUGAS
+        // =========================================================================
+        function renderAdminDashboard() {
+            const tbody = document.getElementById('adminTableBody');
+            document.getElementById('adminTotalCount').innerText = janjiList.length;
+
+            tbody.innerHTML = '';
+            if (janjiList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400">Belum ada permohonan janji temu.</td></tr>`;
+                return;
+            }
+
+            janjiList.forEach(item => {
+                let statusBadge = '';
+                if (item.status === 'Menunggu') statusBadge = `<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">Menunggu</span>`;
+                else if (item.status === 'Disetujui') statusBadge = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">Disetujui</span>`;
+                else if (item.status === 'Reschedule') statusBadge = `<span class="bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 rounded-full font-medium">Reschedule</span>`;
+                else if (item.status === 'Ditolak') statusBadge = `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded-full font-medium">Ditolak</span>`;
+                else if (item.status === 'Selesai') statusBadge = `<span class="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-full font-medium">Selesai</span>`;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/80 transition';
+                tr.innerHTML = `
+                    <td class="p-3.5">
+                        <div class="font-mono font-bold text-slate-800">${item.id}</div>
+                        <div class="text-[10px] text-slate-400">${item.timestamp}</div>
+                    </td>
+                    <td class="p-3.5">
+                        <div class="font-semibold text-slate-800">${item.nama}</div>
+                        <div class="text-[11px] text-slate-500"><i class="fa-brands fa-whatsapp text-emerald-600"></i> ${item.wa}</div>
+                    </td>
+                    <td class="p-3.5">
+                        <div class="font-medium text-slate-700">${item.layanan}</div>
+                        <div class="text-[10px] text-slate-400 max-w-xs truncate" title="${item.alasan}">Ket: ${item.alasan}</div>
+                    </td>
+                    <td class="p-3.5">
+                        <div class="font-medium text-slate-800">${item.petugas}</div>
+                    </td>
+                    <td class="p-3.5">
+                        <div class="font-medium text-slate-800">${item.tglKonfirmasi || item.tglUsulan}</div>
+                        <div class="text-[10px] text-slate-500">${item.jamKonfirmasi || item.jamUsulan}</div>
+                    </td>
+                    <td class="p-3.5 text-center">${statusBadge}</td>
+                    
+                    <!-- KEPUTUSAN ADMIN -->
+                    <td class="p-3.5 text-center">
+                        <div class="flex justify-center gap-1">
+                            <button onclick="openModalAction('${item.id}', 'ACC')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded text-[10px] font-medium" title="Setujui Janji">ACC</button>
+                            <button onclick="openModalAction('${item.id}', 'RESCHEDULE')" class="bg-sky-600 hover:bg-sky-700 text-white px-2 py-1 rounded text-[10px] font-medium" title="Ubah Jadwal">Ubah</button>
+                            <button onclick="openModalAction('${item.id}', 'REJECT')" class="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1 rounded text-[10px] font-medium" title="Tolak Janji">Tolak</button>
+                        </div>
+                    </td>
+
+                    <!-- KIRIM NOTIFIKASI WA -->
+                    <td class="p-3.5 text-center space-y-1">
+                        <button onclick="kirimWAKePemohon('${item.id}')" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-1 rounded text-[10px] font-medium flex items-center justify-center gap-1">
+                            <i class="fa-brands fa-whatsapp text-emerald-600"></i> Ke Pemohon
+                        </button>
+                        <button onclick="kirimWAKePetugasUkur('${item.id}')" class="w-full bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-2 py-1 rounded text-[10px] font-medium flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-paper-plane text-sky-600"></i> Ke Petugas Ukur
+                        </button>
+                    </td>
+
+                    <!-- KELOLA (SELESAI / HAPUS) -->
+                    <td class="p-3.5 text-center space-y-1">
+                        ${item.status !== 'Selesai' ? `
+                            <button onclick="markJanjiSelesai('${item.id}')" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2 py-1 rounded text-[10px] font-medium">
+                                <i class="fa-solid fa-check"></i> Selesai
+                            </button>
+                        ` : ''}
+                        <button onclick="deleteJanjiTemu('${item.id}')" class="w-full bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 border px-2 py-1 rounded text-[10px] font-medium transition">
+                            <i class="fa-solid fa-trash-can"></i> Hapus
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterAdminTable() {
+            const query = document.getElementById('adminSearchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#adminTableBody tr');
+            rows.forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
+            });
+        }
+
+        // MASTER PETUGAS UKUR MODAL ACTIONS
+        function openMasterPetugasModal() {
+            renderMasterPetugasTable();
+            document.getElementById('masterPetugasModal').classList.remove('hidden');
+        }
+
+        function renderMasterPetugasTable() {
+            const tbody = document.getElementById('masterPetugasTableBody');
+            tbody.innerHTML = '';
+            petugasMaster.forEach(p => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2.5 font-semibold text-slate-800">${p.nama}</td>
+                        <td class="p-2.5 font-mono text-slate-600">${p.wa}</td>
+                        <td class="p-2.5 text-center">
+                            <button onclick="deletePetugasUkur(${p.id})" class="text-rose-600 hover:text-rose-800"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function addPetugasUkur() {
+            const nama = document.getElementById('m_nama_petugas').value.trim();
+            const wa = document.getElementById('m_wa_petugas').value.trim();
+
+            if (!nama || !wa) return;
+
+            petugasMaster.push({
+                id: Date.now(),
+                nama,
+                wa
+            });
+
+            saveMasterPetugas();
+            document.getElementById('m_nama_petugas').value = '';
+            document.getElementById('m_wa_petugas').value = '';
+        }
+
+        function deletePetugasUkur(id) {
+            if (confirm("Hapus petugas ini dari master data?")) {
+                petugasMaster = petugasMaster.filter(p => p.id !== id);
+                saveMasterPetugas();
+            }
+        }
+
+        // ADMIN DECISION MODAL
+        function openModalAction(id, actionType) {
+            const item = janjiList.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('modalJanjiId').value = id;
+            document.getElementById('modalActionType').value = actionType;
+
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+
+            let optionsPetugas = '';
+            petugasMaster.forEach(p => {
+                const isSelected = item.petugas === p.nama ? 'selected' : '';
+                optionsPetugas += `<option value="${p.nama}" ${isSelected}>${p.nama}</option>`;
+            });
+
+            if (actionType === 'ACC') {
+                modalTitle.innerText = `Setujui Janji Temu (${id})`;
+                modalContent.innerHTML = `
+                    <p class="text-slate-600">Konfirmasi persetujuan jadwal janji temu untuk <strong>${item.nama}</strong>.</p>
+                    <div>
+                        <label class="block font-semibold mb-1">Tugaskan Petugas Ukur *:</label>
+                        <select id="m_petugas" class="w-full px-3 py-2 border rounded-lg bg-white">
+                            ${optionsPetugas}
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-semibold mb-1">Tanggal Final:</label>
+                            <input type="date" id="m_tgl" value="${item.tglUsulan}" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">Jam Final:</label>
+                            <input type="text" id="m_jam" value="${item.jamUsulan}" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Catatan Tambahan untuk Pemohon:</label>
+                        <textarea id="m_catatan" rows="2" placeholder="Harap membawa berkas fisik sertifikat/SKT asli..." class="w-full px-3 py-2 border rounded-lg"></textarea>
+                    </div>
+                `;
+            } else if (actionType === 'RESCHEDULE') {
+                modalTitle.innerText = `Re-schedule / Ubah Jadwal (${id})`;
+                modalContent.innerHTML = `
+                    <p class="text-slate-600">Ubahusulan waktu janji temu karena adanya bentrok agenda petugas.</p>
+                    <div>
+                        <label class="block font-semibold mb-1">Pilih Petugas Ukur:</label>
+                        <select id="m_petugas" class="w-full px-3 py-2 border rounded-lg bg-white">
+                            ${optionsPetugas}
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-semibold mb-1">Tanggal Baru:</label>
+                            <input type="date" id="m_tgl" value="${item.tglUsulan}" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">Jam Baru:</label>
+                            <input type="text" id="m_jam" value="13:30 WITA" class="w-full px-3 py-2 border rounded-lg">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Alasan Perubahan Jadwal *:</label>
+                        <textarea id="m_catatan" rows="2" required class="w-full px-3 py-2 border rounded-lg">Petugas ukur sedang ada peninjauan lokasi lain pada jam tersebut.</textarea>
+                    </div>
+                `;
+            } else if (actionType === 'REJECT') {
+                modalTitle.innerText = `Tolak Pengajuan Janji Temu (${id})`;
+                modalContent.innerHTML = `
+                    <p class="text-slate-600">Berikan alasan penolakan secara jelas agar dapat dipahami pemohon.</p>
+                    <div>
+                        <label class="block font-semibold mb-1">Alasan Penolakan (Wajib) *:</label>
+                        <textarea id="m_catatan" rows="3" required placeholder="Masukkan alasan penolakan..." class="w-full px-3 py-2 border rounded-lg">Berkas permohonan belum lengkap / Bidang tanah di luar kewenangan.</textarea>
+                    </div>
+                `;
+            }
+
+            document.getElementById('actionModal').classList.remove('hidden');
+        }
+
+        function submitModalAction() {
+            const id = document.getElementById('modalJanjiId').value;
+            const actionType = document.getElementById('modalActionType').value;
+            const item = janjiList.find(i => i.id === id);
+
+            if (!item) return;
+
+            if (actionType === 'ACC') {
+                item.status = 'Disetujui';
+                item.petugas = document.getElementById('m_petugas').value;
+                item.tglKonfirmasi = document.getElementById('m_tgl').value;
+                item.jamKonfirmasi = document.getElementById('m_jam').value;
+                item.alasanKeputusan = document.getElementById('m_catatan').value.trim() || 'Disetujui sesuai ketersediaan petugas.';
+            } else if (actionType === 'RESCHEDULE') {
+                item.status = 'Reschedule';
+                item.petugas = document.getElementById('m_petugas').value;
+                item.tglKonfirmasi = document.getElementById('m_tgl').value;
+                item.jamKonfirmasi = document.getElementById('m_jam').value;
+                item.alasanKeputusan = document.getElementById('m_catatan').value.trim() || 'Perubahan jadwal dari operator pelayanan.';
+            } else if (actionType === 'REJECT') {
+                const alasan = document.getElementById('m_catatan').value.trim();
+                if (!alasan) {
+                    alert("Alasan penolakan wajib diisi!");
+                    return;
+                }
+                item.status = 'Ditolak';
+                item.alasanKeputusan = alasan;
+            }
+
+            saveJanjiDatabase();
+            closeModal('actionModal');
+        }
+
+        function markJanjiSelesai(id) {
+            const item = janjiList.find(i => i.id === id);
+            if (item && confirm(`Tandai janji temu ${id} sebagai SELESAI?`)) {
+                item.status = 'Selesai';
+                saveJanjiDatabase();
+            }
+        }
+
+        function deleteJanjiTemu(id) {
+            if (confirm(`Apakah Anda yakin ingin menghapus janji temu ${id} secara permanen?`)) {
+                janjiList = janjiList.filter(i => i.id !== id);
+                saveJanjiDatabase();
+            }
+        }
+
+        // WHATSAPP DISPATCHERS
+        function kirimWAKePemohon(id) {
+            const item = janjiList.find(i => i.id === id);
+            if (!item) return;
+
+            let pesan = `Yth. Bapak/Ibu *${item.nama}*,\n\n`;
+            pesan += `Memberitahukan status pengajuan Janji Temu Pertanahan (*${item.id}*) Kantor Pertanahan Kota Baubau:\n\n`;
+            pesan += `• Status: *${item.status.toUpperCase()}*\n`;
+            pesan += `• Layanan: ${item.layanan}\n`;
+            pesan += `• Petugas Ukur Ditunjuk: ${item.petugas}\n`;
+
+            if (item.status === 'Disetujui' || item.status === 'Reschedule' || item.status === 'Selesai') {
+                pesan += `• Waktu Pertemuan: *${item.tglKonfirmasi || item.tglUsulan} Jam ${item.jamKonfirmasi || item.jamUsulan}*\n`;
+                pesan += `• Catatan: ${item.alasanKeputusan || '-'}\n\n`;
+                pesan += `Mohon datang / bersiap tepat waktu. Terima kasih.`;
+            } else if (item.status === 'Ditolak') {
+                pesan += `• Alasan Penolakan: ${item.alasanKeputusan}\n\n`;
+                pesan += `Silakan ajukan ulang setelah melengkapi dokumen. Terima kasih.`;
+            } else {
+                pesan += `\nPengajuan Anda sedang diproses oleh admin operator. Terima kasih.`;
+            }
+
+            openWhatsAppURL(item.wa, pesan);
+        }
+
+        function kirimWAKePetugasUkur(id) {
+            const item = janjiList.find(i => i.id === id);
+            if (!item) return;
+
+            // Find Petugas WA from master
+            const petugasObj = petugasMaster.find(p => p.nama.toLowerCase().includes(item.petugas.toLowerCase()) || item.petugas.toLowerCase().includes(p.nama.toLowerCase()));
+
+            if (!petugasObj) {
+                alert(`Nomor WA untuk petugas (${item.petugas}) tidak ditemukan di Master Data! Silakan tambahkan di Master Petugas Ukur.`);
+                return;
+            }
+
+            let pesan = `Yth. *${petugasObj.nama}*,\n\n`;
+            pesan += `[PENUGASAN JANJI TEMU LAPANGAN - BPN KAB. MUNA]\n\n`;
+            pesan += `Kode Tiket: *${item.id}*\n`;
+            pesan += `Pemohon: *${item.nama}* (${item.wa})\n`;
+            pesan += `Layanan: ${item.layanan}\n`;
+            pesan += `No. Berkas: ${item.berkas}\n`;
+            pesan += `Waktu Pelaksanaan: *${item.tglKonfirmasi || item.tglUsulan} Jam ${item.jamKonfirmasi || item.jamUsulan}*\n`;
+            pesan += `Detail Lokasi/Alasan: "${item.alasan}"\n\n`;
+            pesan += `Mohon dapat ditindaklanjuti sesuai jadwal. Terima kasih.`;
+
+            openWhatsAppURL(petugasObj.wa, pesan);
+        }
+
+        function openWhatsAppURL(phone, message) {
+            const cleanPhone = phone.replace(/[^0-9]/g, '');
+            const formattedPhone = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
+            const url = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        }
+
+        // =========================================================================
+        // VIEW 3: KEPALA SEKSI DASHBOARD
+        // =========================================================================
+        function renderKasiDashboard() {
+            const filterLayanan = document.getElementById('kasiFilterLayanan').value;
+
+            let filtered = janjiList;
+            if (filterLayanan !== 'SEMUA') {
+                filtered = janjiList.filter(i => i.layanan === filterLayanan);
+            }
+
+            const total = filtered.length;
+            const acc = filtered.filter(i => i.status === 'Disetujui' || i.status === 'Reschedule').length;
+            const selesai = filtered.filter(i => i.status === 'Selesai').length;
+            const ditolak = filtered.filter(i => i.status === 'Ditolak').length;
+            const pending = filtered.filter(i => i.status === 'Menunggu').length;
+
+            document.getElementById('kasiTotal').innerText = total;
+            document.getElementById('kasiAcc').innerText = acc;
+            document.getElementById('kasiSelesai').innerText = selesai;
+            document.getElementById('kasiDitolak').innerText = ditolak;
+            document.getElementById('kasiPending').innerText = pending;
+
+            // Beban kerja petugas dari Master Petugas
+            const bebanContainer = document.getElementById('kasiBebanKerjaContainer');
+            bebanContainer.innerHTML = '';
+
+            if (petugasMaster.length === 0) {
+                bebanContainer.innerHTML = `<p class="text-xs text-slate-400">Belum ada master data petugas.</p>`;
+            } else {
+                petugasMaster.forEach(p => {
+                    const count = filtered.filter(i => i.petugas === p.nama && (i.status === 'Disetujui' || i.status === 'Reschedule' || i.status === 'Selesai')).length;
+                    const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+
+                    bebanContainer.innerHTML += `
+                        <div class="space-y-1 text-xs">
+                            <div class="flex justify-between font-medium text-slate-700">
+                                <span>${p.nama}</span>
+                                <span class="font-bold text-bpn-700">${count} Agenda (${percentage}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                <div class="bg-bpn-600 h-full rounded-full" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Audit log keputusan
+            const auditContainer = document.getElementById('kasiAuditLogContainer');
+            auditContainer.innerHTML = '';
+
+            const processedItems = filtered.filter(i => i.status !== 'Menunggu');
+            if (processedItems.length === 0) {
+                auditContainer.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs">Belum ada riwayat persetujuan/penolakan.</div>`;
+                return;
+            }
+
+            processedItems.forEach(item => {
+                let badgeClass = 'bg-emerald-100 text-emerald-800';
+                if (item.status === 'Ditolak') badgeClass = 'bg-rose-100 text-rose-800';
+                else if (item.status === 'Selesai') badgeClass = 'bg-indigo-100 text-indigo-800';
+
+                auditContainer.innerHTML += `
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-800">${item.id} - ${item.nama}</span>
+                            <span class="px-2 py-0.5 rounded ${badgeClass} font-bold">${item.status}</span>
+                        </div>
+                        <p class="text-slate-600"><strong>Petugas:</strong> ${item.petugas} | <strong>Layanan:</strong> ${item.layanan}</p>
+                        <p class="text-slate-500 italic">"Catatan Admin: ${item.alasanKeputusan || '-'}"</p>
+                    </div>
+                `;
+            });
+        }
+
+        // UTILITY FUNCTIONS
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
